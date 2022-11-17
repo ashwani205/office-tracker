@@ -15,6 +15,11 @@
     <string name="welcome">Welcome</string>
     <string name="ok">OK</string>
     <string name="no">NO</string>
+    <string name="check_in">check in</string>
+    <string name="check_out">check out</string>
+    <string name="in_time">In time</string>
+    <string name="end_time">End time</string>
+    <string name="check_in_time">you can check in after 09:00 o\'clock</string>
     <string name="facebook_app_id">398083425775571</string>
     <string name="fb_login_protocol_scheme">fb398083425775571</string>
     <string name="facebook_client_token">e838f7cd6bea5eb0bab9bed3c05ea5a4</string>
