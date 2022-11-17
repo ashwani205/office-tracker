@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "208059973098",
+    "project_id": "office-tracker-f1fb8",
+    "storage_bucket": "office-tracker-f1fb8.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:208059973098:android:ca76859a3f5b32f3528693",
+        "android_client_info": {
+          "package_name": "com.example.officetracker"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "208059973098-j2ohvnpb4b6e3g5qn443026oorr3uq6k.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDBf1tgAlP_cijv6M1qYNWqGJqYw4kYAvU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "208059973098-j2ohvnpb4b6e3g5qn443026oorr3uq6k.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

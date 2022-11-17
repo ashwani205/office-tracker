@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">OfficeTracker</string>
+    <string name="welcome_sign_in_to_continue">Welcome \nSign In to continue</string>
+    <string name="welcome_sign_up_to_continue">Welcome \nSign Up to continue</string>
+    <string name="type_your_email_here">Type your email here</string>
+    <string name="type_your_password_here">Type your password here</string>
+    <string name="sign_in">Sign In</string>
+    <string name="create_an_account">Create an account</string>
+    <string name="sign_up">Sign Up</string>
+    <string name="already_have_an_account">Already have an account</string>
+    <string name="goggle_sign_in">Goggle sign in</string>
+    <string name="sign_out">Sign out</string>
+    <string name="open">Open</string>
+    <string name="close">Close</string>
+    <string name="welcome">Welcome</string>
+    <string name="ok">OK</string>
+    <string name="no">NO</string>
+    <string name="facebook_app_id">398083425775571</string>
+    <string name="fb_login_protocol_scheme">fb398083425775571</string>
+    <string name="facebook_client_token">e838f7cd6bea5eb0bab9bed3c05ea5a4</string>
+    <string name="facebook_sign_in">Facebook sign in</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="type_your_name_here">Type your name here</string>
+    <string name="or_login_from">Or login from</string>
+    <string name="type_a_message">Type a message...</string>
+    <string name="do_you_want_to_log_out">Do you want to log out</string>
+
+</resources>
