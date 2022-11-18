@@ -37,5 +37,6 @@
     <string name="location">location</string>
     <string name="failed_on_getting_current_location">Failed on getting current location</string>
     <string name="not_in_range">Not in range</string>
+    <string name="todays_submitted" >You have already checked in today</string>
 
 </resources>

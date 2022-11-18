@@ -31,7 +31,9 @@ import com.google.android.gms.location.LocationServices
 import com.google.firebase.auth.FirebaseAuth
 import java.sql.Time
 import java.text.SimpleDateFormat
+import java.time.LocalDate
 import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 class MainActivity : AppCompatActivity(), LocationListener {
@@ -54,6 +56,9 @@ class MainActivity : AppCompatActivity(), LocationListener {
         user =
             if (mAuth.currentUser?.displayName != null) mAuth.currentUser?.displayName.toString() else mAuth.currentUser?.email
         setNavigationDrawer()
+        if ((MyPreference.readPrefString(this,Constants.CHECKED_IN_DATE)!=null) &&isAfterDate()){
+            MyPreference.clear(this)
+        }
         binding.apply {
             toggle = ActionBarDrawerToggle(
                 this@MainActivity,
@@ -66,12 +71,14 @@ class MainActivity : AppCompatActivity(), LocationListener {
             supportActionBar?.setDisplayHomeAsUpEnabled(true)
             name.text = user
             date.text = getDate()
-            inTime.text=MyPreference.readPrefString(this@MainActivity,Constants.CHECKED_IN_TIME)
-            endTime.text=MyPreference.readPrefString(this@MainActivity,Constants.CHECKED_OUT_TIME)
+            inTime.text = MyPreference.readPrefString(this@MainActivity, Constants.CHECKED_IN_TIME)
+            endTime.text =
+                MyPreference.readPrefString(this@MainActivity, Constants.CHECKED_OUT_TIME)
         }
 
-        if(MyPreference.readPrefBool(this,Constants.IS_CHECKED_IN)){
-            binding.punchButton.text=getString(R.string.check_out)
+
+        if (MyPreference.readPrefBool(this, Constants.IS_CHECKED_IN)) {
+            binding.punchButton.text = getString(R.string.check_out)
         }
         //gps enabled or not
         gpsBroadcastReceiver = GPSBroadcastReceiver()
@@ -97,17 +104,24 @@ class MainActivity : AppCompatActivity(), LocationListener {
         }, 1000 * 10 * 1)
 
         binding.punchButton.setOnClickListener {
-            if(MyPreference.readPrefBool(this,Constants.IS_CHECKED_IN)) {
-                MyPreference.writePrefBool(this, Constants.IS_CHECKED_IN, false)
-                MyPreference.writePrefString(this, Constants.CHECKED_OUT_TIME, getTime())
-                binding.punchButton.text = getString(R.string.check_in)
-                binding.endTime.text = getTime()
-            }else{
+            if (MyPreference.readPrefBool(this, Constants.IS_CHECKED_IN)) {
+
+                    MyPreference.writePrefBool(this, Constants.IS_CHECKED_IN, false)
+                    MyPreference.writePrefString(this, Constants.CHECKED_OUT_TIME, getTime())
+                    MyPreference.writePrefBool(this, Constants.IS_CHECKED_OUT, true)
+                    binding.punchButton.text = getString(R.string.check_in)
+                    binding.endTime.text = getTime()
+
+            } else {
+            if(MyPreference.readPrefBool(this,Constants.IS_CHECKED_OUT)){
+                Toast.makeText(this,getString(R.string.todays_submitted),Toast.LENGTH_SHORT).show()
+            }else {
                 MyPreference.writePrefBool(this, Constants.IS_CHECKED_IN, true)
                 MyPreference.writePrefString(this, Constants.CHECKED_IN_TIME, getTime())
-                MyPreference.writePrefString(this,Constants.CHECKED_IN_DATE,getDate())
+                MyPreference.writePrefString(this, Constants.CHECKED_IN_DATE, getDate())
                 binding.punchButton.text = getString(R.string.check_out)
                 binding.inTime.text = getTime()
+            }
             }
         }
         binding.signOutBtn.setOnClickListener {
@@ -161,6 +175,25 @@ class MainActivity : AppCompatActivity(), LocationListener {
         return time
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun isAfterDate(): Boolean {
+        var isAfterDate = false
+        try {
+            val secondFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy", Locale.getDefault())
+           val mDate = LocalDate.parse(
+                MyPreference.readPrefString(this, Constants.CHECKED_IN_DATE),
+                secondFormatter
+            )
+            if (LocalDate.now().isAfter(mDate)) {
+                isAfterDate = true
+            }
+
+        } catch (e: Exception) {
+            Log.e("mDate", e.toString())
+        }
+        return isAfterDate
+    }
+
     private fun getDate(): String {
         val sdf = SimpleDateFormat("dd-MM-yyyy hh:mm:ss", Locale.getDefault())
         val currentDate = sdf.format(Date())
@@ -200,7 +233,7 @@ class MainActivity : AppCompatActivity(), LocationListener {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun showPunchIn(){
+    private fun showPunchIn() {
         if (LocalTime.now().isAfter(LocalTime.parse("08:59"))) {
             activityResultLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
             binding.checkInText.visibility = View.INVISIBLE
@@ -209,6 +242,7 @@ class MainActivity : AppCompatActivity(), LocationListener {
         }
 
     }
+
     //fetching current location
     @SuppressLint("MissingPermission")
     private val activityResultLauncher =
@@ -271,8 +305,8 @@ class MainActivity : AppCompatActivity(), LocationListener {
                     loc1.latitude = location.latitude
                     loc1.longitude = location.longitude
                     val loc2 = Location("")
-                    loc2.longitude = 77.0406
-                    loc2.latitude = 28.4392
+                    loc2.longitude = 81.011620
+                    loc2.latitude = 26.843680
                     val distanceInMeters: Float = loc1.distanceTo(loc2)
                     if (distanceInMeters <= 5.0) {
                         binding.punchButton.visibility = View.VISIBLE
