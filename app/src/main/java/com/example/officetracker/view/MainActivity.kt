@@ -69,6 +69,7 @@ class MainActivity : AppCompatActivity(), LocationListener {
             inTime.text=MyPreference.readPrefString(this@MainActivity,Constants.CHECKED_IN_TIME)
             endTime.text=MyPreference.readPrefString(this@MainActivity,Constants.CHECKED_OUT_TIME)
         }
+
         if(MyPreference.readPrefBool(this,Constants.IS_CHECKED_IN)){
             binding.punchButton.text=getString(R.string.check_out)
         }
@@ -273,7 +274,7 @@ class MainActivity : AppCompatActivity(), LocationListener {
                     loc2.longitude = 77.0406
                     loc2.latitude = 28.4392
                     val distanceInMeters: Float = loc1.distanceTo(loc2)
-                    if (distanceInMeters <= 500.0) {
+                    if (distanceInMeters <= 5.0) {
                         binding.punchButton.visibility = View.VISIBLE
                     } else {
                         binding.checkInText.text = getString(R.string.not_in_range)
