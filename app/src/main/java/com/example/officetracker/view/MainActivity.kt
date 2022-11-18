@@ -2,6 +2,8 @@ package com.example.officetracker.view
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.IntentFilter
+import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -15,17 +17,22 @@ import androidx.appcompat.widget.AppCompatTextView
 import androidx.databinding.DataBindingUtil
 import com.example.officetracker.R
 import com.example.officetracker.databinding.ActivityMainBinding
+import com.example.officetracker.utils.GPSBroadcastReceiver
+import com.example.officetracker.utils.LocationListener
 import com.google.firebase.auth.FirebaseAuth
 import java.sql.Time
 import java.text.SimpleDateFormat
 import java.time.LocalTime
 import java.util.*
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(),LocationListener {
     private lateinit var binding: ActivityMainBinding
     private lateinit var toggle: ActionBarDrawerToggle
     private lateinit var mAuth: FirebaseAuth
     private var user: String? = null
+    private lateinit var locationDialogBuilder: android.app.AlertDialog.Builder
+    private lateinit var locationDialog: android.app.AlertDialog
+    private lateinit var gpsBroadcastReceiver: GPSBroadcastReceiver
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,7 +57,21 @@ class MainActivity : AppCompatActivity() {
             name.text = user
             date.text = getDate(currentDate)
         }
-
+        gpsBroadcastReceiver = GPSBroadcastReceiver()
+        gpsBroadcastReceiver.setLocationListener(this)
+        setupLocationDialog()
+        val locationManager = this.getSystemService(LOCATION_SERVICE) as LocationManager
+        if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            if (this::locationDialog.isInitialized) {
+                locationDialog.dismiss()
+            }
+            //isGPSEnabled = true;
+        } else {
+            if (this::locationDialog.isInitialized) {
+                locationDialog.show()
+            }
+            //isGPSEnabled = false;
+        }
         if (LocalTime.now().isAfter(LocalTime.parse("09:00"))) {
             binding.punchButton.visibility = View.VISIBLE
         } else {
@@ -84,6 +105,14 @@ class MainActivity : AppCompatActivity() {
         return super.onOptionsItemSelected(item)
     }
 
+    private fun setupLocationDialog() {
+        locationDialogBuilder = android.app.AlertDialog.Builder(this, R.style.DialogTheme)
+        locationDialogBuilder.setTitle("Location not available!")
+        locationDialogBuilder.setMessage("Please enable Location/GPS to continue using application")
+        locationDialogBuilder.setCancelable(false)
+        locationDialog = locationDialogBuilder.create()
+    }
+
     private fun getTime(dateStr: String): String {
         var time = ""
         try {
@@ -108,6 +137,29 @@ class MainActivity : AppCompatActivity() {
             Log.e("mDate", e.toString())
         }
         return mDate
+    }
+
+    override fun onStart() {
+        super.onStart()
+        if (this::gpsBroadcastReceiver.isInitialized) {
+            registerReceiver(
+                gpsBroadcastReceiver,
+                IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION)
+            )
+        }
+    }
+
+    override fun onLocationChanged(isLocationEnable: Boolean) {
+        if (!isLocationEnable) {
+            if (this::locationDialog.isInitialized) {
+                locationDialog.show()
+            }
+        } else {
+            if (this::locationDialog.isInitialized) {
+                locationDialog.dismiss()
+            }
+        }
+
     }
 }
 

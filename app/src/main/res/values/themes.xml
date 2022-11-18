@@ -13,4 +13,10 @@
         <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
     </style>
+
+    <style name="DialogTheme" parent="Theme.AppCompat.Light.Dialog">
+        <item name="fontFamily">sans-serif-light</item>
+        <item name="titleTextColor">@color/purple_700</item>
+    </style>
+
 </resources>
