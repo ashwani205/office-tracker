@@ -200,7 +200,7 @@ class MainActivity : AppCompatActivity(), LocationListener {
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun showPunchIn(){
-        if (LocalTime.now().isAfter(LocalTime.parse("08:19"))) {
+        if (LocalTime.now().isAfter(LocalTime.parse("08:59"))) {
             activityResultLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
             binding.checkInText.visibility = View.INVISIBLE
         } else {
