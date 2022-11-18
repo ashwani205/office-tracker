@@ -1,14 +1,22 @@
 package com.example.officetracker.view
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.IntentFilter
+import android.location.Location
 import android.location.LocationManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.provider.Settings
 import android.util.Log
 import android.view.MenuItem
 import android.view.View
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
@@ -17,15 +25,16 @@ import androidx.appcompat.widget.AppCompatTextView
 import androidx.databinding.DataBindingUtil
 import com.example.officetracker.R
 import com.example.officetracker.databinding.ActivityMainBinding
-import com.example.officetracker.utils.GPSBroadcastReceiver
-import com.example.officetracker.utils.LocationListener
+import com.example.officetracker.utils.*
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import com.google.firebase.auth.FirebaseAuth
 import java.sql.Time
 import java.text.SimpleDateFormat
 import java.time.LocalTime
 import java.util.*
 
-class MainActivity : AppCompatActivity(),LocationListener {
+class MainActivity : AppCompatActivity(), LocationListener {
     private lateinit var binding: ActivityMainBinding
     private lateinit var toggle: ActionBarDrawerToggle
     private lateinit var mAuth: FirebaseAuth
@@ -33,6 +42,9 @@ class MainActivity : AppCompatActivity(),LocationListener {
     private lateinit var locationDialogBuilder: android.app.AlertDialog.Builder
     private lateinit var locationDialog: android.app.AlertDialog
     private lateinit var gpsBroadcastReceiver: GPSBroadcastReceiver
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private val locationPermissionRequiredCode = 1000
+    private val handler = Handler(Looper.getMainLooper())
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -56,7 +68,13 @@ class MainActivity : AppCompatActivity(),LocationListener {
             supportActionBar?.setDisplayHomeAsUpEnabled(true)
             name.text = user
             date.text = getDate(currentDate)
+            inTime.text=MyPreference.readPrefString(this@MainActivity,Constants.CHECKED_IN_TIME)
+            endTime.text=MyPreference.readPrefString(this@MainActivity,Constants.CHECKED_OUT_TIME)
         }
+        if(MyPreference.readPrefBool(this,Constants.IS_CHECKED_IN)){
+            binding.punchButton.text=getString(R.string.check_out)
+        }
+        //gps enabled or not
         gpsBroadcastReceiver = GPSBroadcastReceiver()
         gpsBroadcastReceiver.setLocationListener(this)
         setupLocationDialog()
@@ -65,17 +83,33 @@ class MainActivity : AppCompatActivity(),LocationListener {
             if (this::locationDialog.isInitialized) {
                 locationDialog.dismiss()
             }
-            //isGPSEnabled = true;
         } else {
             if (this::locationDialog.isInitialized) {
                 locationDialog.show()
             }
-            //isGPSEnabled = false;
         }
-        if (LocalTime.now().isAfter(LocalTime.parse("09:00"))) {
-            binding.punchButton.visibility = View.VISIBLE
-        } else {
-            binding.checkInText.visibility = View.VISIBLE
+        showPunchIn()
+        //punch in time
+        handler.postDelayed(object : Runnable {
+            override fun run() {
+                showPunchIn()
+                handler.postDelayed(this, 1000 * 10 * 1)
+            }
+        }, 1000 * 10 * 1)
+
+        binding.punchButton.setOnClickListener {
+            if(MyPreference.readPrefBool(this,Constants.IS_CHECKED_IN)) {
+                MyPreference.writePrefBool(this, Constants.IS_CHECKED_IN, false)
+                MyPreference.writePrefString(this, Constants.CHECKED_OUT_TIME, getTime(currentDate))
+                binding.punchButton.text = getString(R.string.check_in)
+                binding.endTime.text = getTime(currentDate)
+            }else{
+                MyPreference.writePrefBool(this, Constants.IS_CHECKED_IN, true)
+                MyPreference.writePrefString(this, Constants.CHECKED_IN_TIME, getTime(currentDate))
+                MyPreference.writePrefString(this,Constants.CHECKED_IN_DATE,getDate(currentDate))
+                binding.punchButton.text = getString(R.string.check_out)
+                binding.inTime.text = getTime(currentDate)
+            }
         }
         binding.signOutBtn.setOnClickListener {
             val dialog = AlertDialog.Builder(this)
@@ -83,6 +117,7 @@ class MainActivity : AppCompatActivity(),LocationListener {
                 R.string.ok
             )
             { _, _ ->
+                MyPreference.clear(this)
                 mAuth.signOut()
                 finish()
                 startActivity(Intent(this, SignInActivity::class.java))
@@ -159,7 +194,100 @@ class MainActivity : AppCompatActivity(),LocationListener {
                 locationDialog.dismiss()
             }
         }
+    }
 
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun showPunchIn(){
+        if (LocalTime.now().isAfter(LocalTime.parse("08:19"))) {
+            activityResultLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+            binding.checkInText.visibility = View.INVISIBLE
+        } else {
+            binding.checkInText.visibility = View.VISIBLE
+        }
+
+    }
+    //fetching current location
+    @SuppressLint("MissingPermission")
+    private val activityResultLauncher =
+        registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { isGranted ->
+            if (isGranted) {
+                getCurrentLocation()
+            } else {
+                val builder = android.app.AlertDialog.Builder(this)
+                builder.setMessage(getString(R.string.please_enable_location))
+                    .setPositiveButton(getString(R.string.ok)) { _, _ ->
+                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                        val uri = Uri.fromParts("package", packageName, null)
+                        intent.data = uri
+                        startActivity(intent)
+                    }
+                    .setNegativeButton(R.string.cancel) { dialog, _ ->
+                        dialog.dismiss()
+                    }
+                val alert = builder.create()
+                alert.setTitle(getString(R.string.location))
+                alert.show()
+            }
+        }
+
+    private fun getCurrentLocation() {
+        PermissionUtils.requestAccessFineLocationPermission(
+            this,
+            locationPermissionRequiredCode
+        )
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        when {
+            PermissionUtils.isAccessFineLocationGranted(this) -> {
+                when {
+                    PermissionUtils.isLocationEnabled(this) -> {
+                        setUpCurrentLocationListener()
+                    }
+                    else -> {
+                        PermissionUtils.showGPSNotEnabledDialog(this)
+                    }
+                }
+            }
+            else -> {
+                PermissionUtils.requestAccessFineLocationPermission(
+                    this,
+                    locationPermissionRequiredCode
+                )
+            }
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun setUpCurrentLocationListener() {
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        fusedLocationClient.lastLocation
+            .addOnSuccessListener { location ->
+                try {
+                    val loc1 = Location("")
+                    loc1.latitude = location.latitude
+                    loc1.longitude = location.longitude
+                    val loc2 = Location("")
+                    loc2.longitude = 77.0406
+                    loc2.latitude = 28.4392
+                    val distanceInMeters: Float = loc1.distanceTo(loc2)
+                    if (distanceInMeters <= 500.0) {
+                        binding.punchButton.visibility = View.VISIBLE
+                    } else {
+                        binding.checkInText.text = getString(R.string.not_in_range)
+                        binding.checkInText.visibility = View.VISIBLE
+                    }
+                    Log.d("distanceInMeters", distanceInMeters.toString())
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+            .addOnFailureListener {
+                Toast.makeText(
+                    this, getString(R.string.failed_on_getting_current_location),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
     }
 }
 

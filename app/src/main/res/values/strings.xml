@@ -19,7 +19,7 @@
     <string name="check_out">check out</string>
     <string name="in_time">In time</string>
     <string name="end_time">End time</string>
-    <string name="check_in_time">you can check in after 09:00 o\'clock</string>
+    <string name="check_in_time">you can check in after 08:59 o\'clock</string>
     <string name="facebook_app_id">398083425775571</string>
     <string name="fb_login_protocol_scheme">fb398083425775571</string>
     <string name="facebook_client_token">e838f7cd6bea5eb0bab9bed3c05ea5a4</string>
@@ -29,5 +29,13 @@
     <string name="or_login_from">Or login from</string>
     <string name="type_a_message">Type a message...</string>
     <string name="do_you_want_to_log_out">Do you want to log out</string>
+    <string name="please_enable_location">please enable location</string>
+    <string name="cancel">cancel</string>
+    <string name="enable_gps">enable gps</string>
+    <string name="required_for_this_app">required for this app</string>
+    <string name="enable_now">enable now</string>
+    <string name="location">location</string>
+    <string name="failed_on_getting_current_location">Failed on getting current location</string>
+    <string name="not_in_range">Not in range</string>
 
 </resources>

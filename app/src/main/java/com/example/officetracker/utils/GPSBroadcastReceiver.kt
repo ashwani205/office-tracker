@@ -22,10 +22,8 @@ class GPSBroadcastReceiver : BroadcastReceiver() {
             val locationManager = context.getSystemService(LOCATION_SERVICE) as LocationManager
             if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                 locationListener?.onLocationChanged(true) ?: return
-                //isGPSEnabled = true;
             } else {
                 locationListener?.onLocationChanged(false) ?: return
-                //isGPSEnabled = false;
             }
         } catch (ex: Exception) {
             Log.d("locationBroadcast", ex.message.toString())
