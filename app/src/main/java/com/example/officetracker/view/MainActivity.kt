@@ -54,8 +54,6 @@ class MainActivity : AppCompatActivity(), LocationListener {
         user =
             if (mAuth.currentUser?.displayName != null) mAuth.currentUser?.displayName.toString() else mAuth.currentUser?.email
         setNavigationDrawer()
-        val sdf = SimpleDateFormat("dd-MM-yyyy hh:mm:ss", Locale.getDefault())
-        val currentDate = sdf.format(Date())
         binding.apply {
             toggle = ActionBarDrawerToggle(
                 this@MainActivity,
@@ -67,7 +65,7 @@ class MainActivity : AppCompatActivity(), LocationListener {
             toggle.syncState()
             supportActionBar?.setDisplayHomeAsUpEnabled(true)
             name.text = user
-            date.text = getDate(currentDate)
+            date.text = getDate()
             inTime.text=MyPreference.readPrefString(this@MainActivity,Constants.CHECKED_IN_TIME)
             endTime.text=MyPreference.readPrefString(this@MainActivity,Constants.CHECKED_OUT_TIME)
         }
@@ -100,15 +98,15 @@ class MainActivity : AppCompatActivity(), LocationListener {
         binding.punchButton.setOnClickListener {
             if(MyPreference.readPrefBool(this,Constants.IS_CHECKED_IN)) {
                 MyPreference.writePrefBool(this, Constants.IS_CHECKED_IN, false)
-                MyPreference.writePrefString(this, Constants.CHECKED_OUT_TIME, getTime(currentDate))
+                MyPreference.writePrefString(this, Constants.CHECKED_OUT_TIME, getTime())
                 binding.punchButton.text = getString(R.string.check_in)
-                binding.endTime.text = getTime(currentDate)
+                binding.endTime.text = getTime()
             }else{
                 MyPreference.writePrefBool(this, Constants.IS_CHECKED_IN, true)
-                MyPreference.writePrefString(this, Constants.CHECKED_IN_TIME, getTime(currentDate))
-                MyPreference.writePrefString(this,Constants.CHECKED_IN_DATE,getDate(currentDate))
+                MyPreference.writePrefString(this, Constants.CHECKED_IN_TIME, getTime())
+                MyPreference.writePrefString(this,Constants.CHECKED_IN_DATE,getDate())
                 binding.punchButton.text = getString(R.string.check_out)
-                binding.inTime.text = getTime(currentDate)
+                binding.inTime.text = getTime()
             }
         }
         binding.signOutBtn.setOnClickListener {
@@ -148,11 +146,13 @@ class MainActivity : AppCompatActivity(), LocationListener {
         locationDialog = locationDialogBuilder.create()
     }
 
-    private fun getTime(dateStr: String): String {
+    private fun getTime(): String {
+        val sdf = SimpleDateFormat("dd-MM-yyyy hh:mm:ss", Locale.getDefault())
+        val currentDate = sdf.format(Date())
         var time = ""
         try {
-            val formatter = SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.ENGLISH)
-            val mDate = formatter.parse(dateStr)
+            val formatter = SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.ENGLISH)
+            val mDate = formatter.parse(currentDate)
             time = Time(mDate!!.time).toString()
         } catch (e: Exception) {
             Log.e("mTime", e.toString())
@@ -160,14 +160,16 @@ class MainActivity : AppCompatActivity(), LocationListener {
         return time
     }
 
-    private fun getDate(dateStr: String): String {
+    private fun getDate(): String {
+        val sdf = SimpleDateFormat("dd-MM-yyyy hh:mm:ss", Locale.getDefault())
+        val currentDate = sdf.format(Date())
         var mDate = ""
         try {
             val formatter = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
             mDate = SimpleDateFormat(
                 "dd-MM-yyyy",
                 Locale.getDefault()
-            ).format(formatter.parse(dateStr)!!)
+            ).format(formatter.parse(currentDate)!!)
         } catch (e: Exception) {
             Log.e("mDate", e.toString())
         }
